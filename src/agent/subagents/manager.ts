@@ -181,7 +181,19 @@ export async function resolveSubagentModel(options: {
 
   if (userModel) return userModel;
 
-  if (options.subagentType === "reflection") {
+  // Reflection subagent default: route memory operations to a memory-tuned
+  // handle (`letta/auto-memory`) on hosted Letta. Honor user-supplied
+  // `~/.letta/agents/reflection.md` (or project-level) overrides BEFORE this
+  // default fires so self-hosted users — and anyone who wants a specific
+  // model for reflection — can configure it without patching letta-code.
+  // The builtin `reflection.md` ships with `model: auto`, which we treat as
+  // "no explicit override" alongside `inherit`.
+  const hasExplicitOverride =
+    !!recommendedModel &&
+    recommendedModel !== "inherit" &&
+    recommendedModel !== "auto";
+
+  if (options.subagentType === "reflection" && !hasExplicitOverride) {
     return "letta/auto-memory";
   }
 
